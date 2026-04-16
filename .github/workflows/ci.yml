@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # Skip building sqlite3's native binding in CI — install fetches a
+      # prebuilt for the current platform; we're only syntax-checking
+      # the JS, not running the Electron app.
+      npm_config_build_from_source: "false"
+      SQLITE3_BINARY_HOST_MIRROR: "https://github.com/TryGhost/node-sqlite3/releases/download/"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (no scripts — skip native rebuild)
+        run: npm install --ignore-scripts
+
+      - name: Syntax check main JS files
+        run: node --check main.js && node --check bookAPI.js && node --check database.js && node --check renderer.js && node --check preload.js
+
+      - name: Syntax check web service worker
+        run: node --check web/sw.js
+
+      - name: Validate web/manifest.json
+        run: node -e "JSON.parse(require('fs').readFileSync('web/manifest.json','utf8'))"
+
+      - name: Validate package.json
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
+
+      - name: Syntax check web/index.html inline script
+        run: |
+          node -e "
+          const fs = require('fs');
+          const html = fs.readFileSync('web/index.html','utf8');
+          const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+          if (scripts.length === 0) { console.error('No inline script found'); process.exit(1); }
+          scripts.forEach((m, i) => { new Function(m[1]); });
+          console.log('web/index.html scripts OK (' + scripts.length + ')');
+          "
