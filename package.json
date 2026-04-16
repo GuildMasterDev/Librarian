@@ -5,16 +5,70 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --dev"
+    "dev": "electron . --dev",
+    "dist": "electron-builder",
+    "dist-mac": "electron-builder --mac",
+    "dist-win": "electron-builder --win",
+    "dist-linux": "electron-builder --linux"
   },
-  "keywords": ["electron", "library", "books", "reading"],
+  "keywords": [
+    "electron",
+    "library",
+    "books",
+    "reading"
+  ],
   "author": "David",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^41.0.0"
+    "electron": "^41.0.0",
+    "electron-builder": "^26.8.1"
   },
   "dependencies": {
-    "sqlite3": "^5.1.7",
-    "axios": "^1.15.0"
+    "axios": "^1.15.0",
+    "sqlite3": "^6.0.1"
+  },
+  "build": {
+    "appId": "me.davidcanhelp.librarian",
+    "productName": "Librarian",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "database.js",
+      "bookAPI.js",
+      "renderer.js",
+      "index.html",
+      "styles.css",
+      "assets/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ]
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Office",
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ]
+    }
   }
 }
